@@ -1,0 +1,19 @@
+#!/bin/bash
+#PBS -A P28100036 
+#PBS -N merge_data
+#PBS -j oe
+#PBS -q economy
+#PBS -l walltime=12:00:00
+#PBS -l select=1:ncpus=36
+
+
+source ~/.kaiju_env # here we use this env file
+module list # list all loaded modulefiles
+hostname
+date # time begin the job
+
+# simple version, make sure the path is right
+python ../hdf5merger.py > ${RUNID}.out
+
+date # time end the job
+ 
