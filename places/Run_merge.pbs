@@ -6,14 +6,19 @@
 #PBS -l walltime=12:00:00
 #PBS -l select=1:ncpus=36
 
+# user define options
+hdf5_flder=/glade/scratch/luanxl/model_result/kaiju/test/earth_test
+basename=msphere
+slice_type='xz'
 
 source ~/.kaiju_env # here we use this env file
+source /glade/scratch/luanxl/model_result/kaiju/test/earth_test/merged_files/env/bin/activate
 module list # list all loaded modulefiles
 hostname
 date # time begin the job
 
 # simple version, make sure the path is right
-python ../hdf5merger.py > ${RUNID}.out
+python ../hdf5merger.py -hf ${hdf5_flder} -bn ${basename} -st ${slice_type} > merged.out
 
 date # time end the job
  

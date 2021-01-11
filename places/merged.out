@@ -1,0 +1,5 @@
+Processing dir:/glade/scratch/luanxl/model_result/kaiju/test/earth_test
+Load msphere data files without Res files
+Check file list ok, begin to merge hdf5 files
+min_step: 0   max_step: 112
+[Parallel(n_jobs=5)]: Using backend LokyBackend with 5 concurrent workers.

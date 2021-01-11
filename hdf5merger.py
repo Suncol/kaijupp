@@ -16,6 +16,9 @@ import re
 from numba import jit # it is a jit compiler, use it when the func call is in great amount
 from joblib import Parallel, delayed # use the joblib, which is much quicker that multiprocessing in the python module
 
+# for user interface / collecting user define vars
+import argparse
+
 # get all the data file to a file list
 def get_file_list(path,basename):
     print ('Processing dir:' + path)
@@ -459,14 +462,40 @@ if __name__ == "__main__":
     hfdType = np.float32
     sys.stdout.flush()
     
-    hdf5_fldr = '/WORK/iggcas_zhyao_1/kaiju/cases/saturn'
-    basename = 'saturn' 
-    model_type = 'kaiju'
-    slice_type = 'eq'
-    do_origin_merge = False # just merge slice dataset, not all of the original dataset, because it's really lag
-    save_step = 1 # step to save the merged files
-    n_workers = 24 # numbers of the workers in the joblib, better not larger than cpu cores 
-                   # if the n_workers == 0, we will just use the non-parallel version, a simple loop
+    ###------
+    # # user define variables, you can modify the vars here if you don't wanna use the pbs/slurm manager
+    # hdf5_fldr = '/glade/scratch/luanxl/model_result/kaiju/test/earth_test'
+    # basename = 'msphere' 
+    # model_type = 'kaiju'
+    # slice_type = 'eq'
+    # do_origin_merge = 0 # just merge slice dataset, not all of the original dataset, because it's really lag
+    # save_step = 1 # step to save the merged files
+    # n_workers = 36 # numbers of the workers in the joblib, better not larger than cpu cores 
+    #                # if the n_workers == 0, we will just use the non-parallel version, a simple loop
+    
+    ###------
+
+    ###------
+    # user define vars, collecting from the argparse and set some default configs
+    parser = argparse.ArgumentParser(description='HDF5 files merger for kaiju and omega!')
+    parser.add_argument('--hdf5_fldr', '-hf', help='path to the h5 files', required=True)
+    parser.add_argument('--basename','-bn',help='basename of the model results / Runid', required=True)
+    parser.add_argument('--model_type','-t',help='model type, kaiju or omega',default='kaiju')
+    parser.add_argument('--slice_type','-st',help='slice type',required=True)
+    parser.add_argument('--do_origin_merge','-om',help='if do the original merge,defalut is false',default=0)
+    parser.add_argument('--save_step','-s',help='save step',default=1)
+    parser.add_argument('--n_workers','-nw',help='number of workers in parallel merging',default=5)
+    args = parser.parse_args()
+
+    hdf5_fldr = args.hdf5_fldr
+    basename = args.basename
+    model_type = args.model_type
+    slice_type = args.slice_type
+    do_origin_merge = int(args.do_origin_merge)
+    save_step = int(args.save_step)
+    n_workers = int(args.n_workers)
+
+    ###------
 
     output_dir = os.path.join(hdf5_fldr, 'merged_files')
     
@@ -522,7 +551,7 @@ if __name__ == "__main__":
     #     print ("Merged!")
 
     # do the simple loop for merging the original data setl, mind that it can be really slow
-    if do_origin_merge:
+    if do_origin_merge == 1:
         print('Do the original dataset merging!')
         for it in range (min_step,max_step+1,save_step): 
             time_start = time.time()
@@ -549,7 +578,7 @@ if __name__ == "__main__":
         # no need for timing
         # highly recommend user to use this, if the io bound is not the bottleneck, that can be really quick
         args_list = [[output_dir,basename,it,file_dict,slice_type] for it in range(min_step,max_step,save_step)] 
-        Parallel(n_jobs=18,verbose=100)(delayed(write_step_slice) (args) \
+        Parallel(n_jobs=n_workers,verbose=100)(delayed(write_step_slice) (args) \
                 for args in args_list)
     
 
